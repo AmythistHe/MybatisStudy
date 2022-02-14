@@ -13,7 +13,7 @@ Mybatis默认的事务管理器为JDBC，连接池为POOLED。
 - Properties：引用外部配置文件，也可以在该标签中直接添加属性配置。如果有配置字段重复，
 优先使用外部配置文件的内容。
 - typeAliases：为实体类起别名，可以直接使用注解。
-- settings：设置mybatis的运行时行为，如缓存、懒加载、自动生成主键等。
+- settings：设置mybatis的运行时行为，如缓存、懒加载、自动生成主键、日志等。
 - mappers：基于mapper路径去注册绑定xml对应的mapper文件。
 ### 生命周期和作用域
 - SqlSessionFactoryBuilder：基于数据源创建SqlSessionFactory，一旦创建了SqlSessionFactory，
@@ -32,3 +32,39 @@ Mybatis默认的事务管理器为JDBC，连接池为POOLED。
     
 <select id="getUserById" resultMap="UserMap"></select>
 ```
+### 日志
+- 日志工厂：settings中的logImpl用于指定mybatis日志的具体实现，未指定时将自动查找。
+主要包括SLF4J、LOG4J、STDOUT_LOGGING等实现方式。
+- STDOUT_LOGGING(标准日志输出)
+```xml
+<settings>
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+</settings>
+```
+
+```text
+PooledDataSource forcefully closed/removed all connections.
+Opening JDBC Connection
+Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.
+Created connection 1866850137.
+Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@6f45df59]
+==>  Preparing: select * from school.user limit 3
+==> Parameters: 
+查询结果
+Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@6f45df59]
+Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@6f45df59]
+Returned connection 1866850137 to pool.
+```
+- log4j(日志控制包)：可以通过Loggers(日志类别和级别)、Appenders(日志输出位置和格式)、Layout(日志输出的形式)配置日志。
+log4j可以通过properties和xml两种方式配置。log4j日志级别为DEBUG < INFO < WARN < ERROR < FATAL。
+### 分页
+- Limit语句：基于SQL语句实现。
+- RowBounds：在java代码层面实现。
+- PageHelper：Mybatis分页插件。
+### Mybatis-Annotation
+- 使用注解替代mapper.xml。首先在接口上设置注解，然后在核心配置文件(mybatis-config)中绑定接口。
+```java
+@Select("select * from user")
+    List<User> getUsers();
+```
+- 注解本质通过反射实现，底层为动态代理。

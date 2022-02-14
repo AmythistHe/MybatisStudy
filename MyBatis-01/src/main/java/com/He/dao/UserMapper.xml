@@ -2,10 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
-<mapper namespace="com.He.dao.UserMapper">
+<mapper namespace="com.com.He.dao.UserMapper">
     <select id="getUserList" resultType="user">
         select *
         from school.user
         limit 3
+    </select>
+
+    <select id="getUserByLimit" parameterType="map" resultType="user">
+        select * from school.user limit #{startIndex}, #{pageSize}
+    </select>
+
+    <select id="getUserByRowBounds" parameterType="map" resultType="user">
+        select * from school.user
     </select>
 </mapper>

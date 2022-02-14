@@ -5,11 +5,11 @@
 
 <configuration>
     <settings>
-        <setting name="logImpl" value="LOG4J"/>
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
     </settings>
 
     <typeAliases>
-        <package name="com.com.He.pojo"/>
+        <package name="com.He.pojo"/>
     </typeAliases>
 
     <environments default="development">
@@ -26,9 +26,10 @@
             </dataSource>
         </environment>
     </environments>
-    <!--定义mybatis映射文件位置-->
+
+    <!--绑定接口-->
     <mappers>
-        <mapper resource="com/com.He/dao/UserMapper.xml"/>
+        <mapper class="com.He.dao.UserMapper"/>
     </mappers>
 
 </configuration>
