@@ -68,3 +68,14 @@ log4j可以通过properties和xml两种方式配置。log4j日志级别为DEBUG 
     List<User> getUsers();
 ```
 - 注解本质通过反射实现，底层为动态代理。
+- @Param注解：指定属性名。方法存在一个或多个基本类型参数，所有参数前建议添加@Param，引用类型不需要添加。
+- @Data注解：无参构造、get、set、toString、hashcode、equals
+- @AllArgsConstructor注解：有参构造
+- @NoArgsConstructor：无参构造
+### 一对一(或一对多)查询
+- 一对一：student表包含teacher属性，在查询student表时需要使用resultMap标签中的association(bean映射)建立两表之间的映射。
+- 一对多：student表包含list格式的teacher属性，在查询student表时需要使用resultMap标签中的collection(集合映射)建立两表之间的映射。
+- resultMap标签中的JavaType用来指定实体类中属性的类型，ofType用来指定映射到list或集合中的bean类型、泛型中的约束类型。
+### 动态SQL
+
+
