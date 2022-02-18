@@ -77,5 +77,131 @@ log4j可以通过properties和xml两种方式配置。log4j日志级别为DEBUG 
 - 一对多：student表包含list格式的teacher属性，在查询student表时需要使用resultMap标签中的collection(集合映射)建立两表之间的映射。
 - resultMap标签中的JavaType用来指定实体类中属性的类型，ofType用来指定映射到list或集合中的bean类型、泛型中的约束类型。
 ### 动态SQL
+- 动态SQL：基于不同的条件去生成不同的SQL语句，减少SQL拼接。
+- if：在where语句中提供多条件查询，if标签满足后才会执行该条件。
+```xml
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG WHERE state = ‘ACTIVE’
+  <if test="title != null">
+    AND title like #{title}
+  </if>
+  <if test="author != null and author.name != null">
+    AND author_name like #{author.name}
+  </if>
+</select>
+```
+- choose、when、otherwise：在choose标签中提供多条件查询，if标签需要使用全部的条件，而when标签只用从多个条件中选择一个使用。
+如果所有的条件都不满足，则执行otherwise标签中的条件。
+```xml
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG WHERE state = ‘ACTIVE’
+  <choose>
+    <when test="title != null">
+      AND title like #{title}
+    </when>
+    <when test="author != null and author.name != null">
+      AND author_name like #{author.name}
+    </when>
+    <otherwise>
+      AND featured = 1
+    </otherwise>
+  </choose>
+</select>
+```
+- trim、where、set：where标签和set标签分别用于替代where语句和set语句，可以避免一些语法错误。
+trim标签可以通过自定义操作去替代where标签和set标签。
+```xml
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  <where>
+    <if test="state != null">
+         state = #{state}
+    </if>
+    <if test="title != null">
+        AND title like #{title}
+    </if>
+    <if test="author != null and author.name != null">
+        AND author_name like #{author.name}
+    </if>
+  </where>
+</select>
+```
+```xml
+<update id="updateAuthorIfNecessary">
+  update Author
+    <set>
+      <if test="username != null">username=#{username},</if>
+      <if test="password != null">password=#{password},</if>
+      <if test="email != null">email=#{email},</if>
+      <if test="bio != null">bio=#{bio}</if>
+    </set>
+  where id=#{id}
+</update>
+```
+```xml
+<trim prefix="WHERE" prefixOverrides="AND |OR ">
+  ...
+</trim>
 
-
+<trim prefix="SET" suffixOverrides=",">
+  ...
+</trim>
+```
+- sql、include：使用sql标签抽取公用的部分，在需要使用的地方使用include标签应用，从而实现代码复用。
+sql标签中不建议放where标签。
+```xml
+<sql id="if-state-title">
+    <if test="state != null">
+         state = #{state}
+    </if>
+    <if test="title != null">
+        AND title like #{title}
+    </if>
+</sql>
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  <where>
+    <include refid="if-state-title"></include>
+  </where>
+</select>
+```
+- foreach：对集合进行遍历，并基于集合中每一项完成各种操作。
+```xml
+<select id="selectPostIn" resultType="domain.blog.Post">
+  SELECT *
+  FROM POST P
+  <where>
+    <foreach item="item" index="index" collection="list"
+        open="ID in (" separator="," close=")" nullable="true">
+          #{item}
+    </foreach>
+  </where>
+</select>
+```
+### Mybatis缓存
+- Mybatis缓存：Mybatis中包含一级(SqlSession，本地缓存)和二级(namespace)缓存。
+所有的数据都会先放到一级缓存中，只有当会话提交或关闭时，数据才会放到二级缓存中。
+- 一级缓存(SqlSession级)：多次查询相同数据时，缓存生效。缓存失效情况：增删改操作可能会改变原来的数据，必定会刷新缓存；查询不同东西；查询不同mapper.xml；手动通过SqlSession的clearCache方法清理缓存。
+Mybatis默认开启一级缓存，结构为map，只在一个SqlSession中缓存数据。
+- 二级缓存(namespace级)：二级缓存需要在setting标签中开启，并通过cache标签手动配置。二级缓存可设置LRU、FIFO、SOFT、WEAK等策略，默认为LRU。
+二级缓存作用于cache标签所在的映射文件中的语句，多个sqlSession可以共享一个Mapper的二级缓存区域，作用范围比一级缓存大。
+```xml
+setting name="cacheEnabled" value="true"/>
+```
+```xml
+<!--二级缓存-->
+    <!--淘汰策略为FIFO，60s刷新一次缓存，缓存对象数目为512，缓存只读-->
+    <cache eviction="FIFO"
+           flushInterval="60000"
+           size="512"
+           readOnly="true"/>
+```
+- 查询顺序：二级缓存->一级缓存->数据库
+- 自定义缓存框架(ehcache)：分布式缓存。
+```xml
+<cache type="org.mybatis.caches.ehcache.EhcacheCache"/>
+```

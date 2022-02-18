@@ -11,6 +11,8 @@
     <modules>
         <module>MyBatis-01</module>
         <module>Mybatis-Annotation</module>
+        <module>Mybatis-DynamicSQL</module>
+        <module>Mybatis-Cache</module>
     </modules>
 
     <dependencies>
